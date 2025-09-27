@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import ReportDetail from "./pages/ReportDetail";
 import Reports from "./pages/Reports";
 import SearchLocation from "./pages/SearchLocation";
+import SelfLogin from "./pages/SelfLogin";
 import Testify from "./pages/Testify";
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/reports" element={<Reports />} />
             <Route path="/testify" element={<Testify />} />
             <Route path="/report-detail/:id" element={<ReportDetail />} />
+            <Route path="/self-login" element={<SelfLogin />} />
             {/* Add other routes as needed */}
             <Route path="*" element={<div>404 Not Found</div>} />
           </Routes>
