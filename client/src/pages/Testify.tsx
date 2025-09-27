@@ -1,4 +1,6 @@
+import { PinataSDK } from "pinata";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import Nav from "../components/Nav";
 
 export default function ReportIncident() {
@@ -15,6 +17,15 @@ export default function ReportIncident() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const pinata = new PinataSDK({
+    pinataJwt: import.meta.env.VITE_PINATA_JWT!,
+    // pinataGateway: "example-gateway.mypinata.cloud",
+    pinataGateway: "coral-light-cicada-276.mypinata.cloud",
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Ask location on load
   useEffect(() => {
@@ -100,10 +111,32 @@ export default function ReportIncident() {
     // }
 
     try {
-      console.log("form submitted");
+      setIsLoading(true); // start loading
+
+      const uploadedHashes: string[] = [];
+
+      for (const photo of photos) {
+        // Upload each photo to Pinata
+        const response = await pinata.upload.public.file(photo);
+        uploadedHashes.push(response.cid ?? "");
+      }
+
+      console.log("Uploaded image IPFS hashes:", uploadedHashes);
+
+      // Now you can send description, location, and IPFS hashes to your backend
+      const incidentData = {
+        description,
+        location,
+        images: uploadedHashes, // array of IPFS hashes
+      };
+
+      console.log("Submitting Incident Data:", incidentData);
+
+      navigate("/", { replace: true });
     } catch (err) {
       console.error("Error uploading images:", err);
       alert("Failed to upload images. Please try again.");
+      setIsLoading(false); // reset loading if error
     }
   };
 
@@ -186,15 +219,17 @@ export default function ReportIncident() {
         {/* Submit */}
         <button
           onClick={handleSubmit}
+          disabled={isLoading}
           className={`w-full sm:w-auto px-6 text-primary-foreground font-medium py-2 md:py-3 text-sm md:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 mt-4
-        ${"bg-primary hover:bg-primary/90"}`}
+        ${
+          isLoading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-primary hover:bg-primary/90"
+        }`}
         >
-          {"Submit Incident"}
+          {isLoading ? "Submitting..." : "Submit Incident"}
         </button>
       </div>
-      {/* <div className="bottom-10 w-full relative">
-      <BottomBar />
-    </div> */}
     </>
   );
 }
