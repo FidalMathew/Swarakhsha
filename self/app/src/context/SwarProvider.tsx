@@ -1,3 +1,5 @@
+"use client";
+
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import abi from "../utils/abi.json";
@@ -21,7 +23,7 @@ declare global {
 export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const backendURL = "http://localhost:8080"; // Update with your backend URL
+  const backendURL = "http://localhost:8080";
 
   const [chainId, setChainId] = useState("");
   const [currentAccount, setCurrentAccount] = useState("");
@@ -33,11 +35,11 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
   const { ethereum } = window;
 
   useEffect(() => {
-    const getContract = () => {
-      const provider = new ethers.providers.Web3Provider(
-        ethereum as ethers.providers.ExternalProvider
-      );
-      const signer = provider.getSigner();
+    const getContract = async () => {
+      if (!ethereum) return;
+
+      const provider = new ethers.BrowserProvider(ethereum);
+      const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         contractAddress,
         contractABI,
@@ -45,6 +47,7 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       setSwarakshaContract(contract);
     };
+
     if (ethereum && currentAccount) getContract();
   }, [ethereum, contractABI, currentAccount]);
 
@@ -52,9 +55,9 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
     const checkIfWalletIsConnected = async () => {
       try {
         if (!ethereum) {
-          console.log("Metamask not found");
+          console.log("MetaMask not found");
           return;
-        } else console.log("we have ethereum object");
+        }
 
         const accounts = (await ethereum.request({
           method: "eth_accounts",
@@ -72,13 +75,13 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
         const curr_chainId = await ethereum.request({ method: "eth_chainId" });
         setChainId(curr_chainId as string);
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const handleChainChanged = (_chainId: unknown) => {
+          window.location.reload();
+        };
+
         if (ethereum && typeof ethereum.on === "function") {
           ethereum.on("chainChanged", handleChainChanged);
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        function handleChainChanged(_chainId: unknown) {
-          window.location.reload();
         }
       } catch (error) {
         console.log(error);
@@ -86,7 +89,7 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     checkIfWalletIsConnected();
-  }, [currentAccount, contractABI, ethereum]);
+  }, [ethereum]);
 
   const connectWallet = async () => {
     try {
@@ -104,29 +107,12 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   if (currentAccount) {
-  //     // check if user is whitelisted
-  //     console.log("User is connected:", currentAccount);
-  //     navigate("/");
-  //   } else {
-  //     // navigate to connect wallet page
-  //     // window.location.href = "/connect";
-  //     navigate("/connect");
-  //   }
-  // }, [currentAccount, navigate]);
-
   const switchNetwork = async () => {
     try {
-      if (!window.ethereum) {
-        alert("MetaMask is not installed!");
-        return;
-      }
-      await window.ethereum.request({
+      if (!ethereum) return;
+      await ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0xaef3" }], // celo alfajores chainId
+        params: [{ chainId: "0xaef3" }], // Celo Alfajores
       });
     } catch (error) {
       console.log(error);

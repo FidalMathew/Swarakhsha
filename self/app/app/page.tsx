@@ -6,7 +6,6 @@ import {
   SelfQRcodeWrapper,
   type SelfApp,
 } from "@selfxyz/qrcode";
-import { ethers } from "ethers";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -17,7 +16,7 @@ export default function Home() {
   const [toastMessage, setToastMessage] = useState("");
   const [selfApp, setSelfApp] = useState<SelfApp | null>(null);
   const [universalLink, setUniversalLink] = useState("");
-  const [userId] = useState(ethers.ZeroAddress);
+  const [userId] = useState("0x000000000000000000000000000000000000000000"); // default to zero address
   // Use useMemo to cache the array to avoid creating a new array on each render
   const excludedCountries = useMemo(() => [countries.UNITED_STATES], []);
 
