@@ -119,10 +119,12 @@ def openai_query(prompt: str, context: str, model: str="gpt-4o-mini", max_tokens
     response = openai_client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": f"""User will give you a situation and ask for advice. Give best possible advice.
+            {"role": "user", "content": f"""
             {context}
-            """},
-            {"role": "user", "content": prompt}
+
+            {prompt}
+             """
+             }
         ],
         max_tokens=max_tokens,
         temperature=0.0

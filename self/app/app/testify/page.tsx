@@ -100,6 +100,124 @@ export default function ReportIncident() {
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Solution 1: Replace the problematic regex with ES5+ compatible version
+  function extractJSONWithCompatibleRegex(text: string): string | null {
+    // Use [\s\S] instead of . with s flag to match any character including newlines
+    const jsonMatch = text.match(/\{[\s\S]*?\}/);
+    return jsonMatch ? jsonMatch[0] : null;
+  }
+
+  // Solution 2: Better regex that handles nested braces (ES5+ compatible)
+  // function extractJSONWithNestedBraces(text: string): string | null {
+  //   // More precise regex that handles nested objects
+  //   const jsonMatch = text.match(/\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}/);
+  //   return jsonMatch ? jsonMatch[0] : null;
+  // }
+
+  // Solution 3: Manual brace counting (most reliable)
+  function extractJSONWithBraceCount(text: string): string | null {
+    const startIndex = text.indexOf("{");
+    if (startIndex === -1) return null;
+
+    let braceCount = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let i = startIndex; i < text.length; i++) {
+      const char = text[i];
+
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+
+      if (char === '"') {
+        inString = !inString;
+        continue;
+      }
+
+      if (!inString) {
+        if (char === "{") {
+          braceCount++;
+        } else if (char === "}") {
+          braceCount--;
+          if (braceCount === 0) {
+            return text.substring(startIndex, i + 1);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  // Complete updated parsing function
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function parseAIResponseFixed(apiData: any): Promise<any> {
+    console.log("Raw API response:", apiData);
+    console.log("Answer field:", apiData.answer);
+
+    let parsedReport;
+
+    try {
+      // Method 1: Direct parsing if data.answer is already JSON
+      parsedReport =
+        typeof apiData.answer === "string"
+          ? JSON.parse(apiData.answer)
+          : apiData.answer;
+      console.log("✅ Direct parsing successful");
+      return parsedReport;
+    } catch (parseError) {
+      console.log("❌ Direct parsing failed, trying cleanup methods...");
+
+      try {
+        // Method 2: Clean the string and parse
+        const cleanedAnswer = apiData.answer
+          .replace(/```json\n?/g, "") // Remove ```json
+          .replace(/```\n?/g, "") // Remove ```
+          .replace(/^\s+|\s+$/g, "") // Trim whitespace
+          .replace(/\r?\n/g, " ") // Replace newlines with spaces
+          .replace(/,\s*}/g, "}") // Fix trailing commas in objects
+          .replace(/,\s*]/g, "]"); // Fix trailing commas in arrays
+
+        parsedReport = JSON.parse(cleanedAnswer);
+        console.log("✅ Cleanup parsing successful");
+        return parsedReport;
+      } catch (secondParseError) {
+        console.log("❌ Cleanup parsing failed, trying regex extraction...");
+
+        try {
+          // Method 3: Extract JSON using brace counting (most reliable)
+          const extractedJSON = extractJSONWithBraceCount(apiData.answer);
+          if (extractedJSON) {
+            parsedReport = JSON.parse(extractedJSON);
+            console.log("✅ Brace counting extraction successful");
+            return parsedReport;
+          }
+
+          // Method 4: Fallback to compatible regex
+          const regexMatch = extractJSONWithCompatibleRegex(apiData.answer);
+          if (regexMatch) {
+            parsedReport = JSON.parse(regexMatch);
+            console.log("✅ Regex extraction successful");
+            return parsedReport;
+          }
+
+          throw new Error("No valid JSON found in response");
+        } catch (extractionError) {
+          console.error("❌ All parsing methods failed:", extractionError);
+          console.error("Original answer:", apiData.answer);
+          throw extractionError;
+        }
+      }
+    }
+  }
+
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
@@ -120,6 +238,63 @@ export default function ReportIncident() {
       };
 
       console.log("Submitting Incident Data:", incidentData);
+
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+
+      try {
+        const res = await fetch("/api/ai/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query:
+              'Given the description, return only a valid JSON object in this exact format: { "id": "1", "pincode: 110076, "title": "Eve teasing near metro station", "description": "Suspicious behavior reported at the Rajiv Chowk metro area.", "fullText": "I was waiting outside the metro station when I noticed a group of men following women and passing inappropriate comments. It made the environment unsafe. The authorities should increase patrolling in this area.", "date": "Sep 22, 2025", "location": "Rajiv Chowk, New Delhi", "severity": "High", "images": ["ipfshash", "ipfshash"] }. Return ONLY the JSON object, no markdown formatting, no additional text. The date in the json response should be' +
+              formattedDate +
+              "date, the location should be latitude=" +
+              incidentData.location.lat +
+              ", longitude=" +
+              incidentData.location.lng +
+              ". The severity should be one of Low, Medium, High based on the description. The images field should use the uploaded IPFS hashes. Make sure the JSON is correctly formatted and parsable.",
+            context:
+              description +
+              " Images: " +
+              uploadedHashes.join(", ") +
+              ". Set the location as well as determine the pincode using the latitude and longitude values provided above.",
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+
+          // Use the fixed parsing function
+          const parsedReport = await parseAIResponseFixed(data);
+
+          // Now you can access individual values safely
+          console.log("✅ Successfully parsed report:", parsedReport);
+          console.log("Individual values:");
+          console.log("ID:", parsedReport.id);
+          console.log("Title:", parsedReport.title);
+          console.log("Description:", parsedReport.description);
+          console.log("Full Text:", parsedReport.fullText);
+          console.log("Date:", parsedReport.date);
+          console.log("Location:", parsedReport.location);
+          console.log("Severity:", parsedReport.severity);
+          console.log("Images:", parsedReport.images);
+
+          // Use the parsed data in your application
+          // setReportData(parsedReport);
+        } else {
+          console.error("API request failed:", res.status, res.statusText);
+        }
+      } catch (error) {
+        console.error("Error sending data to backend:", error);
+      }
 
       router.replace("/"); // ✅ Next.js navigation
     } catch (err) {
