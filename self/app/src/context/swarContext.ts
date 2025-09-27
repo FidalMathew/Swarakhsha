@@ -35,6 +35,8 @@ export interface SwarContextType {
   ) => Promise<void>;
   getReportsByUser: (userAddress: string) => Promise<Report[]>;
   getAllReports: () => Promise<Report[]>;
+    whitelistAddress(): Promise<void>;
+
 }
 
 // Create context

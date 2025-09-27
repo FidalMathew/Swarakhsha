@@ -1,6 +1,6 @@
 "use client";
 
-import { ethers } from "ethers";
+import { ethers, JsonRpcProvider, Wallet } from "ethers";
 // import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import abi from "../utils/abi.json";
@@ -79,6 +79,33 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
     initContract();
   }, [ethereum, contractABI, currentAccount]);
 
+  const whitelistAddress = async () => {
+    // Check env variables
+    if (!process.env.NEXT_APP_RPC_URL || !process.env.NEXT_APP_PRIVATE_KEY) {
+      throw new Error("RPC URL or private key is missing in env");
+    }
+
+    // Provider + wallet
+    const provider = new JsonRpcProvider(process.env.NEXT_APP_RPC_URL);
+    const wallet = new Wallet(process.env.NEXT_APP_PRIVATE_KEY, provider);
+
+    // Contract instance
+    const contract = new ethers.Contract(contractAddress, abi, wallet);
+
+    try {
+      // Make sure currentAccount is a valid Ethereum address
+      if (!ethers.isAddress(currentAccount)) {
+        throw new Error("Invalid Ethereum address provided");
+      }
+
+      const tx = await contract.addUserToWhitelist(currentAccount);
+      const receipt = await tx.wait(); // waits for 1 confirmation
+      console.log("Address whitelisted, tx hash:", receipt.transactionHash);
+    } catch (err) {
+      console.error("Whitelist error:", err);
+    }
+  };
+
   // -------------------------
   // Wallet check on load
   // -------------------------
@@ -102,6 +129,14 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
           method: "eth_chainId",
         })) as string;
         setChainId(chain);
+
+        if (currentAccount == "") {
+          // router.push("/connect");
+        } else {
+          // check if address is whitelisted,
+          // if yes, router.push("/");
+          // else self-login
+        }
 
         // Listen for chain changes
         if (ethereum.on) {
@@ -241,6 +276,7 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
         addReport,
         getReportsByUser,
         getAllReports,
+        whitelistAddress,
       }}
     >
       {children}
