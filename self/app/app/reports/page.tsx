@@ -68,7 +68,7 @@ function Reports() {
           {incidents.map((incident) => (
             <Link
               key={incident.id}
-              href={`/report-detail/${incident.id}`} // ✅ Next.js uses href
+              href={`/report/${incident.id}`} // ✅ Next.js uses href
               className="block"
             >
               <div className="p-6 bg-white rounded-xl shadow-sm border hover:shadow-md transition cursor-pointer">

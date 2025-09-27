@@ -1,6 +1,7 @@
 "use client";
 
 import { ethers } from "ethers";
+// import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import abi from "../utils/abi.json";
 import { SwarContext } from "./swarContext";
@@ -24,119 +25,144 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const backendURL = "http://localhost:8080";
+  // const router = useRouter();
 
-  const [chainId, setChainId] = useState("");
-  const [currentAccount, setCurrentAccount] = useState("");
+  // const [mounted, setMounted] = useState(false);
+  const [chainId, setChainId] = useState<string>("");
+  const [currentAccount, setCurrentAccount] = useState<string>("");
   const [swarakshaContract, setSwarakshaContract] =
     useState<ethers.Contract | null>(null);
 
   const contractAddress = "0xf538d647b80B88d27597d60cA2B3deF0edC3ca3a";
   const contractABI = abi;
+
   const { ethereum } = window;
 
+  // -------------------------
+  // Track client mount
+  // -------------------------
+  // useEffect(() => {
+  //   setMounted(true);
+  // }, []);
+
+  // // -------------------------
+  // // Redirect if no wallet connected
+  // // -------------------------
+  // useEffect(() => {
+  //   if (!mounted) return;
+  //   if (currentAccount) {
+  //     router.push("/");
+  //   }
+  // }, [mounted, currentAccount, router]);
+
+  // -------------------------
+  // Initialize contract
+  // -------------------------
   useEffect(() => {
-    const getContract = async () => {
-      if (!ethereum) return;
+    const initContract = async () => {
+      if (!ethereum || !currentAccount) return;
 
-      const provider = new ethers.BrowserProvider(ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(
-        contractAddress,
-        contractABI,
-        signer
-      );
-      setSwarakshaContract(contract);
-    };
-
-    if (ethereum && currentAccount) getContract();
-  }, [ethereum, contractABI, currentAccount]);
-
-  useEffect(() => {
-    const checkIfWalletIsConnected = async () => {
       try {
-        if (!ethereum) {
-          console.log("MetaMask not found");
-          return;
-        }
-
-        const accounts = (await ethereum.request({
-          method: "eth_accounts",
-        })) as string[];
-
-        if (accounts.length !== 0) {
-          const account = accounts[0];
-          console.log("Found an authorized account:", account);
-          setCurrentAccount(account);
-        } else {
-          setCurrentAccount("");
-          console.log("No authorized accounts found!");
-        }
-
-        const curr_chainId = await ethereum.request({ method: "eth_chainId" });
-        setChainId(curr_chainId as string);
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const handleChainChanged = (_chainId: unknown) => {
-          window.location.reload();
-        };
-
-        if (ethereum && typeof ethereum.on === "function") {
-          ethereum.on("chainChanged", handleChainChanged);
-        }
-      } catch (error) {
-        console.log(error);
+        const provider = new ethers.BrowserProvider(ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+        setSwarakshaContract(contract);
+      } catch (err) {
+        console.error("Contract init error:", err);
       }
     };
 
-    checkIfWalletIsConnected();
-  }, [ethereum]);
+    initContract();
+  }, [ethereum, contractABI, currentAccount]);
 
-  const connectWallet = async () => {
-    try {
+  // -------------------------
+  // Wallet check on load
+  // -------------------------
+  useEffect(() => {
+    const checkWallet = async () => {
       if (!ethereum) {
-        alert("Get MetaMask!");
+        console.log("MetaMask not found");
         return;
       }
 
+      try {
+        const accounts = (await ethereum.request({
+          method: "eth_accounts",
+        })) as string[];
+        if (accounts.length > 0) setCurrentAccount(accounts[0]);
+        else setCurrentAccount("");
+
+        console.log("wallet check accounts:", accounts);
+
+        const chain = (await ethereum.request({
+          method: "eth_chainId",
+        })) as string;
+        setChainId(chain);
+
+        // Listen for chain changes
+        if (ethereum.on) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const handleChainChanged = (_chainId: unknown) =>
+            window.location.reload();
+          ethereum.on("chainChanged", handleChainChanged);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    checkWallet();
+  }, [ethereum]);
+
+  // -------------------------
+  // Connect wallet function
+  // -------------------------
+  const connectWallet = async () => {
+    if (!ethereum) return alert("Install MetaMask!");
+    try {
       const accounts = (await ethereum.request({
         method: "eth_requestAccounts",
       })) as string[];
       setCurrentAccount(accounts[0]);
-    } catch (e) {
-      console.log(e);
+    } catch (err) {
+      console.error(err);
     }
   };
 
+  // -------------------------
+  // Switch network to Celo Alfajores
+  // -------------------------
   const switchNetwork = async () => {
+    if (!ethereum) return;
     try {
-      if (!ethereum) return;
       await ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: "0xaef3" }], // Celo Alfajores
       });
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.error("Network switch error:", err);
     }
   };
 
   useEffect(() => {
-    if (chainId !== "0xaef3") {
-      switchNetwork();
-    }
+    if (chainId !== "0xaef3" && currentAccount) switchNetwork();
   }, [chainId, currentAccount]);
 
-  // ========================
+  // -------------------------
   // CONTRACT FUNCTIONS
-  // ========================
-
+  // -------------------------
   const addUserToWhitelist = async (userAddress: string) => {
     if (!swarakshaContract) return;
     try {
       const tx = await swarakshaContract.addUserToWhitelist(userAddress);
       await tx.wait();
-      console.log("User added to whitelist:", userAddress);
+      console.log("User added:", userAddress);
     } catch (err) {
-      console.error("Error adding user:", err);
+      console.error(err);
     }
   };
 
@@ -145,9 +171,9 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const tx = await swarakshaContract.removeUserFromWhitelist(userAddress);
       await tx.wait();
-      console.log("User removed from whitelist:", userAddress);
+      console.log("User removed:", userAddress);
     } catch (err) {
-      console.error("Error removing user:", err);
+      console.error(err);
     }
   };
 
@@ -176,9 +202,9 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
         pincode
       );
       await tx.wait();
-      console.log("Report added successfully");
+      console.log("Report added");
     } catch (err) {
-      console.error("Error adding report:", err);
+      console.error(err);
     }
   };
 
@@ -186,10 +212,9 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!swarakshaContract) return [];
     try {
       const reports = await swarakshaContract.getReportsByUser(userAddress);
-      console.log("Reports by user:", reports);
       return reports;
     } catch (err) {
-      console.error("Error fetching reports by user:", err);
+      console.error(err);
       return [];
     }
   };
@@ -198,10 +223,9 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!swarakshaContract) return [];
     try {
       const reports = await swarakshaContract.getAllReports();
-      console.log("All reports:", reports);
       return reports;
     } catch (err) {
-      console.error("Error fetching all reports:", err);
+      console.error(err);
       return [];
     }
   };

@@ -25,7 +25,7 @@ export default function Nav() {
       <nav className="hidden md:flex items-center gap-6">
         {[
           { to: "/", icon: Home, label: "Home" },
-          { to: "/searchlocation", icon: MapPin, label: "Search Location" },
+          { to: "/search-location", icon: MapPin, label: "Search Location" },
           { to: "/reports", icon: Newspaper, label: "Reports" },
           { to: "/testify", icon: MessageSquare, label: "Testify" },
         ].map((item) => (
