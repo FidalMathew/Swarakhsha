@@ -117,7 +117,7 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
       // window.location.href = "/connect";
       navigate("/connect");
     }
-  }, [currentAccount]);
+  }, [currentAccount, navigate]);
 
   const switchNetwork = async () => {
     try {
