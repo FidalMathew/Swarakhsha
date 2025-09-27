@@ -9,10 +9,15 @@ import SearchLocation from "./pages/SearchLocation";
 import Testify from "./pages/Testify";
 
 function App() {
+  // const swarContext = useContext(SwarContext);
+  // const currentAccount = swarContext?.currentAccount;
+
+  // const navigate = useNavigate();
+
   return (
     <>
-      <SwarProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <SwarProvider>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/connect" element={<ConnectWallet />} />
@@ -23,8 +28,8 @@ function App() {
             {/* Add other routes as needed */}
             <Route path="*" element={<div>404 Not Found</div>} />
           </Routes>
-        </BrowserRouter>
-      </SwarProvider>
+        </SwarProvider>
+      </BrowserRouter>
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import abi from "../utils/abi.json";
 import { SwarContext } from "./swarContext";
 
@@ -103,6 +104,20 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(e);
     }
   };
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentAccount) {
+      // check if user is whitelisted
+      console.log("User is connected:", currentAccount);
+      navigate("/");
+    } else {
+      // navigate to connect wallet page
+      // window.location.href = "/connect";
+      navigate("/connect");
+    }
+  }, [currentAccount]);
 
   const switchNetwork = async () => {
     try {

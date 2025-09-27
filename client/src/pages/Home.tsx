@@ -1,10 +1,25 @@
+import { useContext, useEffect } from "react";
+import { useNavigate } from "react-router";
 import FeatureHighlights from "../components/FeatureHighlights";
 import Footer from "../components/Footer";
 import HeroSection from "../components/HeroSection";
 import Nav from "../components/Nav";
 import QuickActions from "../components/QuickAction";
+import { SwarContext } from "../context/swarContext";
 
 export default function HomePage() {
+  const swarContext = useContext(SwarContext);
+  const currentAccount = swarContext?.currentAccount;
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!currentAccount) {
+      // navigate to connect wallet page
+      navigate("/connect");
+    }
+  }, [currentAccount, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* <Header /> */}
