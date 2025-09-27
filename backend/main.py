@@ -41,6 +41,7 @@ else:
 # ---------------------------
 class QueryRequest(BaseModel):
     query: str = Field(..., example="List pincodes between Delhi and Gurgaon")
+    context: str = Field("", example="You are a helpful assistant that provides route information.")
 
 class QueryResponse(BaseModel):
     answer: str
@@ -111,13 +112,18 @@ def point_to_segment_distance(lat, lon, lat1, lon1, lat2, lon2):
 # ---------------------------
 # OpenAI helper
 # ---------------------------
-def openai_query(prompt: str, model: str="gpt-4o-mini", max_tokens: int=512) -> Dict[str, Any]:
+def openai_query(prompt: str, context: str, model: str="gpt-4o-mini", max_tokens: int=512) -> Dict[str, Any]:
     if not openai_client:
         raise RuntimeError("OpenAI client not configured. Check OPENAI_API_KEY.")
     
     response = openai_client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": f"""User will give you a situation and ask for advice. Give best possible advice.
+            {context}
+            """},
+            {"role": "user", "content": prompt}
+        ],
         max_tokens=max_tokens,
         temperature=0.0
     )
@@ -142,11 +148,24 @@ def openai_query(prompt: str, model: str="gpt-4o-mini", max_tokens: int=512) -> 
 @app.post("/query", response_model=QueryResponse)
 async def query_openai(req: QueryRequest):
     try:
-        resp = openai_query(req.query)
+        resp = openai_query(req.query, req.context)
         text = resp["choices"][0]["message"]["content"].strip()
+        print(f"OpenAI response: {text[:200]}...")
         return QueryResponse(answer=text, raw=resp)
     except Exception as e:
         logging.exception("Failed /query")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# New GET endpoint
+@app.get("/")
+async def get_query_info():
+    """
+    Example GET endpoint that returns a default message or info
+    """
+    try:
+        return {"message": "HELLO BRO."}
+    except Exception as e:
+        logging.exception("Failed GET /query")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/compute", response_model=ComputeResponse)

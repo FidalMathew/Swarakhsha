@@ -50,11 +50,31 @@ export default function ReportDetail() {
   }
 
   // Handle AI Q&A (mock right now)
-  const handleAskAI = () => {
+  const handleAskAI = async () => {
     if (!aiQuestion) return;
-    setAiResponse(
-      "AI Suggestion: Always try to stay in well-lit areas, avoid traveling alone late at night, and consider carrying a personal safety alarm."
-    );
+
+    const res = await fetch("/api/ai/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: aiQuestion, context: report.fullText }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setAiResponse(data.answer || "No response from AI.");
+      console.log(data, "data");
+    } else {
+      setAiResponse("Error contacting AI service.");
+    }
+  };
+
+  const parseMarkdown = (text: string): string => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
+      .replace(/\*(.*?)\*/g, "<em>$1</em>") // Italic (if needed)
+      .replace(/\n/g, "<br>"); // Line breaks
   };
 
   return (
@@ -109,6 +129,7 @@ export default function ReportDetail() {
           {report.images.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {report.images.map((src, idx) => (
+                //eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={idx}
                   src={src}
@@ -141,7 +162,12 @@ export default function ReportDetail() {
 
             {aiResponse && (
               <div className="mt-4 p-4 bg-primary/5 rounded-lg text-sm text-gray-700">
-                <strong>AI Response:</strong> {aiResponse}
+                <strong>AI Response:</strong>{" "}
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: parseMarkdown(aiResponse),
+                  }}
+                />
               </div>
             )}
           </div>
