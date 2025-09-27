@@ -334,6 +334,8 @@ const MyMap: React.FC = () => {
     safetySettings.safetyMode,
     safetySettings.safetyBuffer,
     selectedRouteIndex,
+    generateSafeWaypoints,
+    isRouteSafe,
   ]);
 
   const selectRoute = (index: number): void => {
