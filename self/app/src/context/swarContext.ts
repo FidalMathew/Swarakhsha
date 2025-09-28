@@ -23,19 +23,20 @@ export interface SwarContextType {
   addUserToWhitelist: (userAddress: string) => Promise<void>;
   removeUserFromWhitelist: (userAddress: string) => Promise<void>;
   addReport: (
-    caseId: number,
-    latitude: string,
-    longitude: string,
     title: string,
-    description: string,
-    images: string[],
-    severity: string,
-    reportType: string,
-    pincode: string
+  description: string,
+  fullText: string,
+  location: string,
+  latitude: string,
+  longitude: string,
+  image: string,
+  severity: string,
+  pincode: string
   ) => Promise<void>;
   getReportsByUser: (userAddress: string) => Promise<Report[]>;
   getAllReports: () => Promise<Report[]>;
     whitelistAddress(): Promise<void>;
+  isWhitelistedFunc: (userAddress: string) => Promise<boolean>;
 
 }
 

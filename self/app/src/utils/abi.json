@@ -2,9 +2,24 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_caseId",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "_title",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_description",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_fullText",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_location",
+        "type": "string"
       },
       {
         "internalType": "string",
@@ -18,27 +33,12 @@
       },
       {
         "internalType": "string",
-        "name": "_title",
+        "name": "_image",
         "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_description",
-        "type": "string"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_images",
-        "type": "string[]"
       },
       {
         "internalType": "string",
         "name": "_severity",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_reportType",
         "type": "string"
       },
       {
@@ -96,6 +96,26 @@
           },
           {
             "internalType": "string",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "fullText",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "location",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
             "name": "latitude",
             "type": "string"
           },
@@ -106,23 +126,8 @@
           },
           {
             "internalType": "string",
-            "name": "title",
+            "name": "image",
             "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "description",
-            "type": "string"
-          },
-          {
-            "internalType": "uint256",
-            "name": "timestamp",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string[]",
-            "name": "images",
-            "type": "string[]"
           },
           {
             "internalType": "string",
@@ -131,13 +136,13 @@
           },
           {
             "internalType": "string",
-            "name": "reportType",
+            "name": "pincode",
             "type": "string"
           },
           {
-            "internalType": "string",
-            "name": "pincode",
-            "type": "string"
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
           },
           {
             "internalType": "address",
@@ -172,6 +177,26 @@
           },
           {
             "internalType": "string",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "fullText",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "location",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
             "name": "latitude",
             "type": "string"
           },
@@ -182,23 +207,8 @@
           },
           {
             "internalType": "string",
-            "name": "title",
+            "name": "image",
             "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "description",
-            "type": "string"
-          },
-          {
-            "internalType": "uint256",
-            "name": "timestamp",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string[]",
-            "name": "images",
-            "type": "string[]"
           },
           {
             "internalType": "string",
@@ -207,13 +217,13 @@
           },
           {
             "internalType": "string",
-            "name": "reportType",
+            "name": "pincode",
             "type": "string"
           },
           {
-            "internalType": "string",
-            "name": "pincode",
-            "type": "string"
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
           },
           {
             "internalType": "address",
@@ -224,6 +234,25 @@
         "internalType": "struct Swarakhsha.Report[]",
         "name": "",
         "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "isWhitelisted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",

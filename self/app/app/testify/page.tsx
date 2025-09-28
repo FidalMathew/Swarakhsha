@@ -1,11 +1,14 @@
 "use client";
 
 import Nav from "@/components/custom/Nav"; // adjust path based on your structure
+import { useSwarakhsha } from "@/utils/useSwarContext";
 import { useRouter } from "next/navigation"; // ✅ useRouter instead of useNavigate
 import { PinataSDK } from "pinata";
 import { useEffect, useRef, useState } from "react";
 
 export default function ReportIncident() {
+  const { addReport } = useSwarakhsha();
+
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [description, setDescription] = useState("");
@@ -277,15 +280,72 @@ export default function ReportIncident() {
 
           // Now you can access individual values safely
           console.log("✅ Successfully parsed report:", parsedReport);
-          console.log("Individual values:");
-          console.log("ID:", parsedReport.id);
-          console.log("Title:", parsedReport.title);
-          console.log("Description:", parsedReport.description);
-          console.log("Full Text:", parsedReport.fullText);
-          console.log("Date:", parsedReport.date);
-          console.log("Location:", parsedReport.location);
-          console.log("Severity:", parsedReport.severity);
-          console.log("Images:", parsedReport.images);
+          console.log("Individual values and their types:");
+
+          const long = incidentData.location.lng?.toString();
+          const lat = incidentData.location.lat?.toString();
+
+          console.log("Types of values being sent to addReport:");
+          console.log(
+            "Title:",
+            parsedReport.title,
+            "| Type:",
+            typeof parsedReport.title
+          );
+          console.log(
+            "Description:",
+            parsedReport.description,
+            "| Type:",
+            typeof parsedReport.description
+          );
+          console.log(
+            "FullText:",
+            parsedReport.fullText,
+            "| Type:",
+            typeof parsedReport.fullText
+          );
+          console.log(
+            "Location:",
+            parsedReport.location,
+            "| Type:",
+            typeof parsedReport.location
+          );
+          console.log("Latitude:", lat || "", "| Type:", typeof (lat || ""));
+          console.log("Longitude:", long || "", "| Type:", typeof (long || ""));
+          console.log(
+            "Image:",
+            parsedReport.images[0],
+            "| Type:",
+            typeof parsedReport.images[0]
+          );
+          console.log(
+            "Severity:",
+            parsedReport.severity,
+            "| Type:",
+            typeof parsedReport.severity
+          );
+          console.log(
+            "Pincode:",
+            parsedReport.pincode,
+            "| Type:",
+            typeof parsedReport.pincode
+          );
+
+          // const jsonString: string[] = JSON.stringify(parsedReport.images);
+
+          // console.log("Images array:", jsonString);
+
+          addReport(
+            parsedReport.title,
+            parsedReport.description,
+            parsedReport.fullText,
+            parsedReport.location,
+            lat || "",
+            long || "",
+            parsedReport.images[0],
+            parsedReport.severity,
+            parsedReport.pincode
+          );
 
           // Use the parsed data in your application
           // setReportData(parsedReport);
