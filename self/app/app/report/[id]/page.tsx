@@ -81,6 +81,7 @@ export default function ReportDetail() {
 
   useEffect(() => {
     const fetchReport = async () => {
+      console.log("test");
       if (!id) {
         setError("No report ID provided");
         setLoading(false);
@@ -96,6 +97,7 @@ export default function ReportDetail() {
           try {
             const realReport = await getReportById(parseInt(id));
             if (realReport) {
+              console.log("Fetched real report:", realReport);
               setReport(realReport);
               setLoading(false);
               return;
@@ -312,32 +314,34 @@ export default function ReportDetail() {
           )}
 
           {/* Uploaded images */}
-          {((report.images && report.images.length > 0) || report.image) && (
+          {((report.image && report.image.length > 0) || report.image) && (
             <div>
               <h3 className="font-semibold text-foreground mb-2">Evidence:</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {report.images?.map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt={`Evidence ${idx + 1}`}
-                    className="rounded-lg shadow-sm object-cover w-full h-48"
-                    onError={(e) => {
-                      // Handle broken images
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                )) ||
-                  (report.image && (
+                {
+                  // report.images?.map((src, idx) => (
+                  //   <img
+                  //     key={idx}
+                  //     src={src}
+                  //     alt={`Evidence ${idx + 1}`}
+                  //     className="rounded-lg shadow-sm object-cover w-full h-48"
+                  //     onError={(e) => {
+                  //       // Handle broken images
+                  //       (e.target as HTMLImageElement).style.display = "none";
+                  //     }}
+                  //   />
+                  // )) ||
+                  report.image && (
                     <img
-                      src={report.image}
+                      src={`https://coral-light-cicada-276.mypinata.cloud/ipfs/${report.image}`}
                       alt="Evidence"
                       className="rounded-lg shadow-sm object-cover w-full h-48"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                       }}
                     />
-                  ))}
+                  )
+                }
               </div>
             </div>
           )}

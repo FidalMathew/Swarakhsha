@@ -2,7 +2,7 @@ import { Shield } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="py-12 px-4">
+    <section className="py-28 px-4">
       <div className="container max-w-4xl mx-auto text-center">
         <div className="flex justify-center mb-6">
           <div className="p-4 rounded-full bg-primary/10">

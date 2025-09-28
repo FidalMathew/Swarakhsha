@@ -187,9 +187,9 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
         description,
         fullText,
         location,
-        image,
         latitude,
         longitude,
+        image,
         severity,
         pincode
       );
