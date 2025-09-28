@@ -32,7 +32,7 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isWhitelistedState, setIsWhitelistedState] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false); // ✅ Added mounting state
 
-  const contractAddress = "0x6382e0a5465f9b6Dca24E58EB5c2ec6fBBC0ae26";
+  const contractAddress = "0xA40086386174Cb0DcA5C34f619E8960dFF3a21f1";
   const contractABI = abi;
 
   const router = useRouter();
@@ -200,6 +200,24 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const getReportById = async (caseId: number): Promise<Report> => {
+    const report = await swarakshaContract?.getReportById(caseId);
+    return {
+      caseId: Number(report.caseId),
+      title: report.title,
+      description: report.description,
+      fullText: report.fullText,
+      location: report.location,
+      latitude: report.latitude,
+      longitude: report.longitude,
+      image: report.image,
+      severity: report.severity,
+      pincode: report.pincode,
+      timestamp: Number(report.timestamp),
+      userAddress: report.userAddress,
+    };
+  };
+
   const whitelistAddress = async () => {
     // Check env variables
     console.log(
@@ -349,6 +367,7 @@ export const SwarProvider: React.FC<{ children: React.ReactNode }> = ({
         getAllReports,
         whitelistAddress,
         isWhitelistedFunc, // ✅ Added to context for easier access
+        getReportById,
       }}
     >
       {children}

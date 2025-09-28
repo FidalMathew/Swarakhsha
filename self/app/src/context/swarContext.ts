@@ -37,6 +37,7 @@ export interface SwarContextType {
   getAllReports: () => Promise<Report[]>;
     whitelistAddress(): Promise<void>;
   isWhitelistedFunc: (userAddress: string) => Promise<boolean>;
+  getReportById: (caseId: number) => Promise<Report | null>;
 
 }
 
